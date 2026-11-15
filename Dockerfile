@@ -3,6 +3,7 @@ FROM rust:1-slim-bookworm AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y \
+    make \
     musl-tools \
     && rm -rf /var/lib/apt/lists/*
 
@@ -16,6 +17,8 @@ COPY Cargo.toml Cargo.lock ./
 
 # Copy source code
 COPY src ./src
+COPY benches ./benches
+COPY static ./static
 
 # Build in release mode with musl for static binary
 RUN cargo build --release --target x86_64-unknown-linux-musl
