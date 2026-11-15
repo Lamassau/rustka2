@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Main Rustka broker using GHCR image
+  rustka:
+    image: ghcr.io/lamassau/rustka2:latest
+    container_name: rustka-broker
+    ports:
+      - "9092:9092"  # Kafka protocol
+      - "8080:8080"  # Dashboard
+    environment:
+      RUST_LOG: info
+      KAFKA_ADVERTISED_HOST: rustka
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9092"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
+    networks:
+      - rustka-net
+    restart: unless-stopped
+
+networks:
+  rustka-net:
+    driver: bridge
+
+# Usage:
+#
+# Start services:
+#   docker-compose -f docker-compose.ghcr.yml up
+#
+# In background:
+#   docker-compose -f docker-compose.ghcr.yml up -d
+#
+# View logs:
+#   docker-compose -f docker-compose.ghcr.yml logs -f rustka
+#
+# Stop services:
+#   docker-compose -f docker-compose.ghcr.yml down
+#
+# To use a specific version tag (instead of latest):
+#   Change: image: ghcr.io/lamassau/rustka2:latest
+#   To:     image: ghcr.io/lamassau/rustka2:v1.0.0
+#
+# Available tags:
+#   - latest          (matches the default branch)
+#   - vX.Y.Z          (semantic versioning tags)
+#   - branch-<sha>    (specific commits)
+#
+# Access from local machine:
+#   - Broker: localhost:9092
+#   - Dashboard: http://localhost:8080
+#
+# Access from other containers:
+#   - Broker: rustka:9092
+#   - Use KAFKA_ADVERTISED_HOST=rustka in client code
