@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Main Rustka broker
+  rustka:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rustka-broker
+    ports:
+      - "9092:9092"  # Kafka protocol
+      - "8080:8080"  # Dashboard
+    environment:
+      RUST_LOG: info
+      KAFKA_ADVERTISED_HOST: rustka
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9092"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
+    networks:
+      - rustka-net
+    # Keep container running even if process exits
+    restart: unless-stopped
+
+networks:
+  rustka-net:
+    driver: bridge
+
+# Usage:
+#
+# Start services:
+#   docker-compose up
+#
+# In background:
+#   docker-compose up -d
+#
+# View logs:
+#   docker-compose logs -f rustka
+#
+# Stop services:
+#   docker-compose down
+#
+# Remove volumes (clean slate):
+#   docker-compose down -v
+#
+# Access from local machine:
+#   - Broker: localhost:9092
+#   - Dashboard: http://localhost:8080
+#
+# Access from other containers:
+#   - Broker: rustka:9092
+#   - Use KAFKA_ADVERTISED_HOST=rustka in client code
